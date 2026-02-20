@@ -1,0 +1,1435 @@
+بالتأكيد، سأقدم لك جميع ملفات المشروع كاملة من البداية إلى النهاية في هذه المحادثة. سأكتب كل ملف باسمه ومساره، متبوعاً بالمحتوى الكامل له. هيا بنا:
+
+هيكل المشروع (Tree)
+
+```
+Muharram/
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── config.py
+├── main.py
+├── update.sh
+├── database/
+│   ├── __init__.py
+│   └── db_handler.py
+├── services/
+│   ├── __init__.py
+│   ├── auth_service.py
+│   ├── publish_service.py
+│   ├── join_service.py
+│   ├── fetch_service.py
+│   └── proxy_manager.py
+├── handlers/
+│   ├── __init__.py
+│   ├── user_handlers.py
+│   ├── admin_handlers.py
+│   └── callback_handlers.py
+├── utils/
+│   ├── __init__.py
+│   ├── logger.py
+│   ├── helpers.py
+│   └── encryption_tools.py
+├── logs/
+│   └── (ملفات السجل هنا)
+├── temp/
+│   └── (ملفات مؤقتة هنا)
+└── backups/
+    └── (نسخ احتياطية لقاعدة البيانات)
+```
+
+---
+
+1. الملفات الجذرية (Root)
+
+1.1 .gitignore
+
+```gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.db-journal
+venv/
+env/
+.env
+
+# Logs
+logs/*.log
+*.log
+
+# Temp
+temp/*
+
+# Backups
+backups/*
+
+# IDE
+.vscode/
+.idea/
+
+# System
+.DS_Store
+*.swp
+*.swo
+*~
+```
+
+1.2 README.md
+
+```markdown
+# بوت محرم (Muharram Bot)
+
+بوت تيليجرام متكامل لإدارة حسابات متعددة، نشر تلقائي، انضمام آلي، جلب روابط، مع لوحة تحكم متطورة.
+
+## المميزات
+- إدارة الأرقام (إضافة، عرض، فحص، حذف) مع تشفير الجلسات
+- محرك نشر ذكي مع إمكانية الإيقاف المؤقت والاستئناف
+- محرك انضمام آلي مع دعم الانضمام الذكي
+- جلب روابط تيليجرام وواتساب من المحادثات
+- نظام اشتراكات بأكواد تفعيل
+- لوحة أدمن متكاملة مع إحصائيات
+- مساعد القائد لإدارة الأكواد
+- دعم البروكسي (SOCKS5)
+- نظام مرايا (Mirror Token) للطوارئ
+- نسخ احتياطي تلقائي لقاعدة البيانات إلى قناة خاصة
+- تحديث سهل عبر Git
+
+## التثبيت والتشغيل
+
+### 1. استنساخ المشروع
+```bash
+git clone https://github.com/yourusername/Muharram.git
+cd Muharram
+```
+
+2. إنشاء بيئة افتراضية
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. تثبيت المتطلبات
+
+```bash
+pip install -r requirements.txt
+```
+
+4. إعداد قاعدة البيانات
+
+(سيتم إنشاؤها تلقائياً عند التشغيل)
+
+5. تشغيل البوت
+
+```bash
+python3 main.py
+```
+
+التحديث
+
+```bash
+git pull
+source venv/bin/activate
+pip install -r requirements.txt
+systemctl restart muharram   # إذا كنت تستخدم systemd
+```
+
+الإعدادات المتقدمة
+
+· انسخ ملف config.py إلى config_local.py للتعديلات المحلية.
+· أضف قناة النسخ الاحتياطي في لوحة الأدمن.
+
+الترخيص
+
+جميع الحقوق محفوظة.
+
+```
+
+### 1.3 `requirements.txt`
+```txt
+python-telegram-bot[job-queue]==20.3
+telethon==1.34.0
+cryptography==41.0.7
+psutil==5.9.6
+aiofiles==23.2.1
+```
+
+1.4 config.py
+
+```python
+# -*- coding: utf-8 -*-
+import os
+
+# ================== بيانات البوت الأساسية ==================
+BOT_TOKEN = "8207472950:AAHS9FqJzNARdhSj1iBu_y1WxzFOSe7VOZs"
+MIRROR_BOT_TOKEN = ""  # توكن احتياطي
+API_ID = 30301641
+API_HASH = "9a4144e4215946eb14540c659f173852"
+ADMIN_IDS = [6056642165]
+
+# ================== قاعدة البيانات ==================
+DATABASE_NAME = "data.db"
+ENCRYPTION_KEY = "mysecretkeymustbe32byteslong!"  # 32 حرفاً
+
+# ================== حدود المستخدم ==================
+MAX_NUMBERS_PER_USER = 5
+MAX_ADS_PER_USER = 20
+
+# ================== إعدادات السيرفر ==================
+MAX_LOG_SIZE_MB = 10
+MAX_TEMP_SIZE_MB = 50
+LOG_FILE = "logs/bot.log"
+ERROR_LOG_FILE = "logs/error.log"
+PAUSE_FILE = "last_shutdown.txt"
+
+# ================== إعدادات البوت المتغيرة (تعدل من لوحة الأدمن) ==================
+SETTINGS = {
+    "subscription_price": "10$",
+    "payment_number": "123456789",
+    "whatsapp_link": "https://wa.me/123456789",
+    "mirror_token": "",
+    "backup_channel": "",  # معرف قناة النسخ الاحتياطي
+}
+```
+
+1.5 main.py
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import os
+import asyncio
+import time
+import logging
+import subprocess
+from datetime import datetime
+sys.path.append(os.path.dirname(__file__))
+
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.warnings import PTBUserWarning
+from telegram.error import Conflict, Unauthorized
+import warnings
+
+warnings.filterwarnings("ignore", category=PTBUserWarning, message=".*CallbackQueryHandler.*")
+
+from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, DATABASE_NAME, ENCRYPTION_KEY, MAX_LOG_SIZE_MB, SETTINGS
+from database.db_handler import Database
+from utils.logger import setup_logger
+from services.auth_service import AuthService
+from services.publish_service import PublishService
+from services.join_service import JoinService
+from services.fetch_service import FetchService
+from services.proxy_manager import ProxyManager
+from handlers.user_handlers import UserHandlers
+from handlers.admin_handlers import AdminHandlers
+from handlers.callback_handlers import CallbackHandlers
+
+logger = setup_logger("Muharram", "logs/bot.log", max_bytes=MAX_LOG_SIZE_MB * 1024 * 1024)
+
+# ================== تهيئة قاعدة البيانات والخدمات ==================
+db = Database(DATABASE_NAME, ENCRYPTION_KEY)
+auth_service = AuthService(db, API_ID, API_HASH)
+publish_service = PublishService(db, API_ID, API_HASH)
+join_service = JoinService(db, API_ID, API_HASH)
+fetch_service = FetchService(db, API_ID, API_HASH)
+proxy_manager = ProxyManager(db)
+
+user_handlers = UserHandlers(db, auth_service, publish_service, join_service, fetch_service, ADMIN_IDS)
+admin_handlers = AdminHandlers(db, ADMIN_IDS, publish_service, join_service, proxy_manager, bot=None)
+callback_handlers = CallbackHandlers(user_handlers, admin_handlers)
+
+# ================== بناء التطبيق ==================
+application = Application.builder().token(BOT_TOKEN).build()
+admin_handlers.bot = application.bot
+
+# ================== إضافة المعالجات ==================
+application.add_handler(CommandHandler("start", user_handlers.start))
+application.add_handler(CallbackQueryHandler(callback_handlers.handle))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, user_handlers.handle_message))
+
+# ================== مهمة تنظيف الملفات المؤقتة ==================
+async def cleanup_job():
+    while True:
+        await asyncio.sleep(3600)  # كل ساعة
+        # تنظيف المجلد المؤقت
+        temp_dir = "temp"
+        if os.path.exists(temp_dir):
+            now = time.time()
+            for f in os.listdir(temp_dir):
+                f_path = os.path.join(temp_dir, f)
+                if os.path.isfile(f_path):
+                    if now - os.path.getmtime(f_path) > 3600:
+                        os.remove(f_path)
+                        logger.info(f"تم حذف ملف مؤقت: {f}")
+        # تنظيف ملفات اللوج القديمة (يتم بواسطة RotatingFileHandler)
+        # نسخ احتياطي لقاعدة البيانات
+        await backup_database()
+
+# ================== النسخ الاحتياطي لقاعدة البيانات ==================
+async def backup_database():
+    channel_id = db.fetch_one("SELECT value FROM global_settings WHERE key='backup_channel'")
+    if channel_id and channel_id['value']:
+        try:
+            backup_dir = "backups"
+            os.makedirs(backup_dir, exist_ok=True)
+            backup_name = f"{backup_dir}/data_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+            import shutil
+            shutil.copy2(DATABASE_NAME, backup_name)
+            with open(backup_name, 'rb') as f:
+                await application.bot.send_document(
+                    chat_id=int(channel_id['value']),
+                    document=f,
+                    caption=f"📦 نسخة احتياطية لقاعدة البيانات - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                )
+            # الاحتفاظ بآخر 5 نسخ فقط
+            backups = sorted(os.listdir(backup_dir))
+            for old_backup in backups[:-5]:
+                os.remove(os.path.join(backup_dir, old_backup))
+            logger.info("تم النسخ الاحتياطي بنجاح")
+        except Exception as e:
+            logger.error(f"خطأ في النسخ الاحتياطي: {e}")
+
+# ================== بدء المهام الخلفية ==================
+loop = asyncio.get_event_loop()
+loop.create_task(cleanup_job())
+
+# ================== تشغيل البوت مع معالجة الأعطال ==================
+def main():
+    try:
+        logger.info("بدء تشغيل البوت...")
+        application.run_polling()
+    except (Conflict, Unauthorized) as e:
+        logger.critical(f"البوت محظور أو متعارض: {e}. جاري التبديل إلى التوكن الاحتياطي...")
+        if SETTINGS.get('mirror_token'):
+            # حفظ التوكن الحالي
+            with open("last_token.txt", "w") as f:
+                f.write(BOT_TOKEN)
+            # إعادة التشغيل بالتوكن الجديد
+            os.environ['BOT_TOKEN'] = SETTINGS['mirror_token']
+            os.execv(sys.executable, ['python'] + sys.argv)
+        else:
+            logger.critical("لا يوجد توكن احتياطي. البوت متوقف.")
+    except Exception as e:
+        logger.exception(f"خطأ غير متوقع: {e}")
+
+if __name__ == "__main__":
+    main()
+```
+
+1.6 update.sh
+
+```bash
+#!/bin/bash
+# سكربت تحديث البوت
+
+cd /root/Muharram || exit 1
+
+# سحب آخر التحديثات
+git pull origin main
+
+# تفعيل البيئة الافتراضية
+source venv/bin/activate
+
+# تحديث المتطلبات
+pip install -r requirements.txt
+
+# إعادة تشغيل الخدمة (إذا كانت مسجلة في systemd)
+if systemctl is-active --quiet muharram; then
+    systemctl restart muharram
+else
+    echo "الخدمة غير مسجلة في systemd. أعد تشغيل البوت يدوياً."
+fi
+
+echo "✅ تم التحديث بنجاح"
+```
+
+---
+
+2. مجلد database
+
+2.1 database/__init__.py
+
+```python
+# هذا الملف يجعل المجلد حزمة بايثون
+```
+
+2.2 database/db_handler.py
+
+```python
+# -*- coding: utf-8 -*-
+import sqlite3
+import logging
+from datetime import datetime, timedelta
+from utils.encryption_tools import AESCipher
+
+logger = logging.getLogger(__name__)
+
+class Database:
+    def __init__(self, db_path, encryption_key):
+        self.db_path = db_path
+        self.cipher = AESCipher(encryption_key)
+        self._init_db()
+
+    def _init_db(self):
+        with self._get_conn() as conn:
+            # جدول المستخدمين
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    username TEXT,
+    first_name TEXT,
+    subscription_end DATE,
+    referral_code TEXT UNIQUE,
+    referred_by INTEGER,
+    bonus_days INTEGER DEFAULT 0,
+    pause_days INTEGER DEFAULT 0,
+    total_posts INTEGER DEFAULT 0,
+    total_joins INTEGER DEFAULT 0,
+    total_fetches INTEGER DEFAULT 0,
+    full_name TEXT,
+    status TEXT DEFAULT 'active',
+    health_score INTEGER DEFAULT 100,
+    safety_mode BOOLEAN DEFAULT 0,
+    last_flood_time TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+            # جدول الأرقام
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS numbers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    phone TEXT,
+    session_string TEXT,
+    proxy TEXT,
+    is_active BOOLEAN DEFAULT 1,
+    session_type TEXT DEFAULT 'user',  -- 'user' or 'bot'
+    is_premium BOOLEAN DEFAULT 0,
+    twofa TEXT,
+    last_used TIMESTAMP,
+    status TEXT DEFAULT 'active',
+    health_score INTEGER DEFAULT 100,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(user_id)
+)
+""")
+            # جدول الإعلانات
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS ads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    ad_text TEXT,
+    ad_type TEXT DEFAULT 'public',  # 'public', 'special'
+    target_groups TEXT,  -- قائمة ids مفصولة بفواصل
+    delay_min INTEGER DEFAULT 30,
+    delay_max INTEGER DEFAULT 60,
+    is_active BOOLEAN DEFAULT 1,
+    total_sent INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(user_id)
+)
+""")
+            # جدول المجموعات
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    group_id TEXT,
+    group_name TEXT,
+    group_type TEXT DEFAULT 'source',  -- 'source', 'target'
+    is_active BOOLEAN DEFAULT 1,
+    join_status TEXT DEFAULT 'pending',  -- 'pending', 'joined', 'failed'
+    joined_at TIMESTAMP,
+    added_by INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(user_id)
+)
+""")
+            # جدول جلب الروابط
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS fetched_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    source_group_id TEXT,
+    link TEXT,
+    link_type TEXT,  -- 'telegram', 'whatsapp'
+    fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(user_id)
+)
+""")
+            # جدول أكواد التفعيل
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS activation_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE,
+    days INTEGER,
+    is_used BOOLEAN DEFAULT 0,
+    used_by INTEGER,
+    used_at TIMESTAMP,
+    created_by INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(used_by) REFERENCES users(user_id)
+)
+""")
+            # جدول الإعدادات العامة
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS global_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+)
+""")
+            # جدول البروكسيات
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS proxies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    proxy_type TEXT DEFAULT 'socks5',
+    proxy_address TEXT,
+    proxy_port INTEGER,
+    proxy_username TEXT,
+    proxy_password TEXT,
+    is_active BOOLEAN DEFAULT 1,
+    usage_count INTEGER DEFAULT 0,
+    last_used TIMESTAMP,
+    health_score INTEGER DEFAULT 100,
+    UNIQUE(proxy_address, proxy_port)
+)
+""")
+            # جدول سجل الأخطاء
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS error_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    number_id INTEGER,
+    error_type TEXT,
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+            # جدول الإحصائيات اليومية
+            conn.execute("""
+CREATE TABLE IF NOT EXISTS daily_stats (
+    date TEXT PRIMARY KEY,
+    total_users INTEGER DEFAULT 0,
+    total_posts INTEGER DEFAULT 0,
+    total_joins INTEGER DEFAULT 0,
+    total_fetches INTEGER DEFAULT 0,
+    total_errors INTEGER DEFAULT 0
+)
+""")
+            # إدخال الإعدادات الافتراضية إذا لم توجد
+            default_settings = [
+                ('subscription_price', '10$'),
+                ('payment_number', '123456789'),
+                ('whatsapp_link', 'https://wa.me/123456789'),
+                ('mirror_token', ''),
+                ('backup_channel', ''),
+                ('leader_username', 'leader')
+            ]
+            for key, value in default_settings:
+                conn.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES (?, ?)", (key, value))
+
+    def _get_conn(self):
+        """إنشاء اتصال بقاعدة البيانات"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    # ========== دوال المستخدمين ==========
+    def add_user(self, user_id, username, first_name, referred_by=None):
+        with self._get_conn() as conn:
+            # التحقق من وجود المستخدم
+            existing = conn.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,)).fetchone()
+            if existing:
+                return False
+            # إنشاء كود إحالة فريد
+            import random, string
+            referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            conn.execute("""
+                INSERT INTO users (user_id, username, first_name, referral_code, referred_by)
+                VALUES (?, ?, ?, ?, ?)
+            """, (user_id, username, first_name, referral_code, referred_by))
+            return True
+
+    def get_user(self, user_id):
+        with self._get_conn() as conn:
+            return conn.execute("SELECT * FROM users WHERE user_id=?", (user_id,)).fetchone()
+
+    def update_user_subscription(self, user_id, days):
+        with self._get_conn() as conn:
+            expiry = (datetime.now() + timedelta(days=days)).date()
+            conn.execute("UPDATE users SET subscription_end=? WHERE user_id=?", (expiry, user_id))
+
+    def update_user_pause(self, user_id, days):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE users SET pause_days=pause_days+? WHERE user_id=?", (days, user_id))
+
+    # ========== دوال الأرقام ==========
+    def add_number(self, user_id, phone, session_string, proxy=None, twofa=None, session_type='user'):
+        with self._get_conn() as conn:
+            cursor = conn.execute("""
+                INSERT INTO numbers (user_id, phone, session_string, proxy, twofa, session_type)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (user_id, phone, self.cipher.encrypt(session_string), proxy, twofa, session_type))
+            return cursor.lastrowid
+
+    def get_user_numbers(self, user_id):
+        with self._get_conn() as conn:
+            rows = conn.execute("SELECT * FROM numbers WHERE user_id=?", (user_id,)).fetchall()
+            for row in rows:
+                row['session_string'] = self.cipher.decrypt(row['session_string']) if row['session_string'] else None
+            return rows
+
+    def get_number(self, number_id):
+        with self._get_conn() as conn:
+            row = conn.execute("SELECT * FROM numbers WHERE id=?", (number_id,)).fetchone()
+            if row:
+                row['session_string'] = self.cipher.decrypt(row['session_string']) if row['session_string'] else None
+            return row
+
+    def delete_number(self, number_id):
+        with self._get_conn() as conn:
+            conn.execute("DELETE FROM numbers WHERE id=?", (number_id,))
+
+    def update_number_health(self, number_id, health_score):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE numbers SET health_score=? WHERE id=?", (health_score, number_id))
+
+    def get_all_numbers(self):
+        with self._get_conn() as conn:
+            rows = conn.execute("SELECT * FROM numbers WHERE is_active=1").fetchall()
+            for row in rows:
+                row['session_string'] = self.cipher.decrypt(row['session_string']) if row['session_string'] else None
+            return rows
+
+    # ========== دوال الإعلانات ==========
+    def add_ad(self, user_id, ad_text, ad_type='public', target_groups=None, delay_min=30, delay_max=60):
+        with self._get_conn() as conn:
+            cursor = conn.execute("""
+                INSERT INTO ads (user_id, ad_text, ad_type, target_groups, delay_min, delay_max)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (user_id, ad_text, ad_type, target_groups, delay_min, delay_max))
+            return cursor.lastrowid
+
+    def get_user_ads(self, user_id):
+        with self._get_conn() as conn:
+            return conn.execute("SELECT * FROM ads WHERE user_id=?", (user_id,)).fetchall()
+
+    def get_ad(self, ad_id):
+        with self._get_conn() as conn:
+            return conn.execute("SELECT * FROM ads WHERE id=?", (ad_id,)).fetchone()
+
+    def update_ad_status(self, ad_id, is_active):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE ads SET is_active=? WHERE id=?", (is_active, ad_id))
+
+    def increment_ad_sent(self, ad_id):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE ads SET total_sent=total_sent+1 WHERE id=?", (ad_id,))
+
+    # ========== دوال المجموعات ==========
+    def add_group(self, user_id, group_id, group_name, group_type='source', added_by=None):
+        with self._get_conn() as conn:
+            cursor = conn.execute("""
+                INSERT INTO groups (user_id, group_id, group_name, group_type, added_by)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(user_id, group_id) DO UPDATE SET group_name=excluded.group_name
+            """, (user_id, group_id, group_name, group_type, added_by))
+            return cursor.lastrowid
+
+    def get_user_groups(self, user_id, group_type=None):
+        with self._get_conn() as conn:
+            if group_type:
+                return conn.execute("SELECT * FROM groups WHERE user_id=? AND group_type=?", (user_id, group_type)).fetchall()
+            return conn.execute("SELECT * FROM groups WHERE user_id=?", (user_id,)).fetchall()
+
+    def get_group(self, group_id):
+        with self._get_conn() as conn:
+            return conn.execute("SELECT * FROM groups WHERE group_id=?", (group_id,)).fetchone()
+
+    def update_group_join_status(self, group_id, status, joined_at=None):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE groups SET join_status=?, joined_at=? WHERE group_id=?", (status, joined_at, group_id))
+
+    def delete_group(self, group_id):
+        with self._get_conn() as conn:
+            conn.execute("DELETE FROM groups WHERE group_id=?", (group_id,))
+
+    # ========== دوال جلب الروابط ==========
+    def add_fetched_link(self, user_id, source_group_id, link, link_type):
+        with self._get_conn() as conn:
+            conn.execute("""
+                INSERT INTO fetched_links (user_id, source_group_id, link, link_type)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, source_group_id, link, link_type))
+
+    def get_user_fetched_links(self, user_id, limit=50):
+        with self._get_conn() as conn:
+            return conn.execute("""
+                SELECT * FROM fetched_links 
+                WHERE user_id=? 
+                ORDER BY fetched_at DESC 
+                LIMIT ?
+            """, (user_id, limit)).fetchall()
+
+    # ========== دوال أكواد التفعيل ==========
+    def generate_codes(self, num_codes, days, created_by):
+        import random, string
+        codes = []
+        with self._get_conn() as conn:
+            for _ in range(num_codes):
+                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+                conn.execute("INSERT INTO activation_codes (code, days, created_by) VALUES (?, ?, ?)", (code, days, created_by))
+                codes.append(code)
+        return codes
+
+    def use_code(self, code, user_id):
+        with self._get_conn() as conn:
+            code_data = conn.execute("SELECT * FROM activation_codes WHERE code=? AND is_used=0", (code,)).fetchone()
+            if code_data:
+                conn.execute("""
+                    UPDATE activation_codes SET is_used=1, used_by=?, used_at=CURRENT_TIMESTAMP
+                    WHERE code=?
+                """, (user_id, code))
+                return code_data['days']
+        return None
+
+    def get_all_codes(self):
+        with self._get_conn() as conn:
+            return conn.execute("SELECT * FROM activation_codes ORDER BY created_at DESC").fetchall()
+
+    def delete_code(self, code):
+        with self._get_conn() as conn:
+            conn.execute("DELETE FROM activation_codes WHERE code=?", (code,))
+
+    # ========== دوال البروكسيات ==========
+    def add_proxy(self, proxy_type, proxy_address, proxy_port, proxy_username=None, proxy_password=None):
+        with self._get_conn() as conn:
+            try:
+                conn.execute("""
+                    INSERT INTO proxies (proxy_type, proxy_address, proxy_port, proxy_username, proxy_password)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (proxy_type, proxy_address, proxy_port, proxy_username, proxy_password))
+                return True
+            except sqlite3.IntegrityError:
+                return False
+
+    def get_proxies(self, active_only=True):
+        with self._get_conn() as conn:
+            if active_only:
+                return conn.execute("SELECT * FROM proxies WHERE is_active=1").fetchall()
+            return conn.execute("SELECT * FROM proxies").fetchall()
+
+    def get_proxy(self, proxy_id):
+        with self._get_conn() as conn:
+            return conn.execute("SELECT * FROM proxies WHERE id=?", (proxy_id,)).fetchone()
+
+    def update_proxy_status(self, proxy_id, is_active):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE proxies SET is_active=? WHERE id=?", (is_active, proxy_id))
+
+    def delete_proxy(self, proxy_id):
+        with self._get_conn() as conn:
+            conn.execute("DELETE FROM proxies WHERE id=?", (proxy_id,))
+
+    def increment_proxy_usage(self, proxy_id):
+        with self._get_conn() as conn:
+            conn.execute("UPDATE proxies SET usage_count=usage_count+1, last_used=CURRENT_TIMESTAMP WHERE id=?", (proxy_id,))
+
+    # ========== دوال الإعدادات العامة ==========
+    def get_setting(self, key):
+        with self._get_conn() as conn:
+            row = conn.execute("SELECT value FROM global_settings WHERE key=?", (key,)).fetchone()
+            return row['value'] if row else None
+
+    def set_setting(self, key, value):
+        with self._get_conn() as conn:
+            conn.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES (?, ?)", (key, value))
+
+    # ========== دوال تنفيذ استعلامات عامة ==========
+    def execute_query(self, query, params=()):
+        with self._get_conn() as conn:
+            return conn.execute(query, params).fetchall()
+
+    def fetch_one(self, query, params=()):
+        with self._get_conn() as conn:
+            return conn.execute(query, params).fetchone()
+
+    # ========== دوال الإحصائيات ==========
+    def update_daily_stats(self):
+        today = datetime.now().date().isoformat()
+        with self._get_conn() as conn:
+            # التحقق من وجود إحصائيات اليوم
+            stats = conn.execute("SELECT * FROM daily_stats WHERE date=?", (today,)).fetchone()
+            if not stats:
+                conn.execute("INSERT INTO daily_stats (date) VALUES (?)", (today,))
+            # تحديث الأعداد
+            total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+            total_posts = conn.execute("SELECT SUM(total_sent) FROM ads").fetchone()[0] or 0
+            total_joins = conn.execute("SELECT COUNT(*) FROM groups WHERE join_status='joined'").fetchone()[0]
+            total_fetches = conn.execute("SELECT COUNT(*) FROM fetched_links").fetchone()[0]
+            total_errors = conn.execute("SELECT COUNT(*) FROM error_logs WHERE date(created_at)=?", (today,)).fetchone()[0]
+            conn.execute("""
+                UPDATE daily_stats SET 
+                    total_users=?, total_posts=?, total_joins=?, total_fetches=?, total_errors=?
+                WHERE date=?
+            """, (total_users, total_posts, total_joins, total_fetches, total_errors, today))
+
+    def get_stats(self, days=7):
+        with self._get_conn() as conn:
+            return conn.execute("""
+                SELECT * FROM daily_stats 
+                WHERE date >= date('now', ?) 
+                ORDER BY date DESC
+            """, (f'-{days} days',)).fetchall()
+
+    # ========== دوال سجل الأخطاء ==========
+    def log_error(self, user_id, error_type, error_message, number_id=None):
+        with self._get_conn() as conn:
+            conn.execute("""
+                INSERT INTO error_logs (user_id, number_id, error_type, error_message)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, number_id, error_type, error_message))
+```
+
+---
+
+3. مجلد services
+
+3.1 services/__init__.py
+
+```python
+# هذا الملف يجعل المجلد حزمة بايثون
+```
+
+3.2 services/auth_service.py
+
+```python
+# -*- coding: utf-8 -*-
+import logging
+from telethon import TelegramClient
+from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError, FloodWaitError
+import asyncio
+from utils.encryption_tools import AESCipher
+import random
+import string
+
+logger = logging.getLogger(__name__)
+
+class AuthService:
+    def __init__(self, db, api_id, api_hash):
+        self.db = db
+        self.api_id = api_id
+        self.api_hash = api_hash
+        self.active_clients = {}  # تخزين العملاء النشطين مؤقتاً
+
+    async def send_code(self, phone, proxy=None):
+        """إرسال كود التفعيل لرقم هاتف"""
+        client = TelegramClient(
+            f'session_{phone}',
+            self.api_id,
+            self.api_hash,
+            proxy=proxy
+        )
+        await client.connect()
+        try:
+            await client.send_code_request(phone)
+            # تخزين العميل للاستخدام لاحقاً
+            self.active_clients[phone] = client
+            return True, "تم إرسال الكود بنجاح"
+        except FloodWaitError as e:
+            return False, f"الرجاء الانتظار {e.seconds} ثانية"
+        except Exception as e:
+            logger.error(f"خطأ في إرسال الكود: {e}")
+            return False, str(e)
+
+    async def verify_code(self, phone, code, twofa=None):
+        """التحقق من كود التفعيل"""
+        client = self.active_clients.get(phone)
+        if not client:
+            return False, "الرجاء طلب كود أولاً"
+        try:
+            await client.sign_in(phone, code)
+            session_string = client.session.save()
+            await client.disconnect()
+            del self.active_clients[phone]
+            return True, session_string
+        except SessionPasswordNeededError:
+            # التحقق بخطوتين
+            if twofa:
+                try:
+                    await client.sign_in(password=twofa)
+                    session_string = client.session.save()
+                    await client.disconnect()
+                    del self.active_clients[phone]
+                    return True, session_string
+                except Exception as e:
+                    return False, f"خطأ في كلمة المرور: {e}"
+            else:
+                return False, "twofa_needed"
+        except PhoneCodeInvalidError:
+            return False, "الكود غير صحيح"
+        except Exception as e:
+            logger.error(f"خطأ في التحقق: {e}")
+            return False, str(e)
+
+    async def verify_twofa(self, phone, twofa):
+        """التحقق بكلمة المرور بخطوتين"""
+        client = self.active_clients.get(phone)
+        if not client:
+            return False, "الرجاء طلب كود أولاً"
+        try:
+            await client.sign_in(password=twofa)
+            session_string = client.session.save()
+            await client.disconnect()
+            del self.active_clients[phone]
+            return True, session_string
+        except Exception as e:
+            return False, str(e)
+
+    async def check_number_health(self, session_string):
+        """فحص صحة الرقم"""
+        client = TelegramClient('temp_health', self.api_id, self.api_hash)
+        try:
+            client.session.load(session_string)
+            await client.connect()
+            if await client.is_user_authorized():
+                me = await client.get_me()
+                await client.disconnect()
+                return True, me.phone
+            return False, "غير مفعل"
+        except Exception as e:
+            logger.error(f"خطأ في فحص الصحة: {e}")
+            return False, str(e)
+        finally:
+            await client.disconnect()
+
+    async def get_dialogs(self, session_string, limit=100):
+        """جلب المحادثات لرقم"""
+        client = TelegramClient('temp_dialogs', self.api_id, self.api_hash)
+        try:
+            client.session.load(session_string)
+            await client.connect()
+            dialogs = await client.get_dialogs(limit=limit)
+            result = []
+            for d in dialogs:
+                result.append({
+                    'id': d.id,
+                    'name': d.name,
+                    'type': 'group' if d.is_group else 'channel' if d.is_channel else 'user'
+                })
+            return True, result
+        except Exception as e:
+            logger.error(f"خطأ في جلب المحادثات: {e}")
+            return False, str(e)
+        finally:
+            await client.disconnect()
+```
+
+3.3 services/publish_service.py
+
+```python
+# -*- coding: utf-8 -*-
+import logging
+import asyncio
+import random
+from telethon import TelegramClient
+from telethon.errors import FloodWaitError, RPCError
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+class PublishService:
+    def __init__(self, db, api_id, api_hash):
+        self.db = db
+        self.api_id = api_id
+        self.api_hash = api_hash
+        self.running_tasks = {}  # ad_id -> task
+        self.paused = False
+
+    async def publish_ad(self, ad_id, number_id, target_group_id):
+        """نشر إعلان واحد"""
+        ad = self.db.get_ad(ad_id)
+        number = self.db.get_number(number_id)
+        if not ad or not number:
+            return False, "الإعلان أو الرقم غير موجود"
+
+        client = TelegramClient('temp_publish', self.api_id, self.api_hash)
+        try:
+            client.session.load(number['session_string'])
+            await client.connect()
+            entity = await client.get_entity(int(target_group_id))
+            await client.send_message(entity, ad['ad_text'])
+            self.db.increment_ad_sent(ad_id)
+            logger.info(f"تم نشر الإعلان {ad_id} في {target_group_id}")
+            return True, "تم النشر بنجاح"
+        except FloodWaitError as e:
+            logger.warning(f"Flood wait {e.seconds} ثانية")
+            return False, f"انتظر {e.seconds} ثانية"
+        except Exception as e:
+            logger.error(f"خطأ في النشر: {e}")
+            return False, str(e)
+        finally:
+            await client.disconnect()
+
+    async def start_auto_publish(self, ad_id, numbers, target_groups):
+        """بدء النشر التلقائي لإعلان"""
+        if ad_id in self.running_tasks:
+            return False, "النشر التلقائي مفعل بالفعل"
+
+        async def publish_loop():
+            while not self.paused:
+                ad = self.db.get_ad(ad_id)
+                if not ad or not ad['is_active']:
+                    break
+                # اختيار رقم عشوائي
+                number = random.choice(numbers)
+                # اختيار مجموعة عشوائية
+                target = random.choice(target_groups.split(','))
+                success, msg = await self.publish_ad(ad_id, number['id'], target.strip())
+                if not success:
+                    logger.error(f"فشل النشر: {msg}")
+                # تأخير عشوائي
+                delay = random.randint(ad['delay_min'], ad['delay_max'])
+                await asyncio.sleep(delay)
+            # إزالة المهمة عند الانتهاء
+            if ad_id in self.running_tasks:
+                del self.running_tasks[ad_id]
+
+        task = asyncio.create_task(publish_loop())
+        self.running_tasks[ad_id] = task
+        return True, "بدأ النشر التلقائي"
+
+    def stop_auto_publish(self, ad_id):
+        """إيقاف النشر التلقائي"""
+        if ad_id in self.running_tasks:
+            self.running_tasks[ad_id].cancel()
+            del self.running_tasks[ad_id]
+            return True, "تم إيقاف النشر التلقائي"
+        return False, "لا يوجد نشر تلقائي لهذا الإعلان"
+
+    def pause_all(self):
+        """إيقاف جميع عمليات النشر مؤقتاً"""
+        self.paused = True
+        logger.info("تم إيقاف جميع عمليات النشر مؤقتاً")
+
+    def resume_all(self):
+        """استئناف جميع عمليات النشر"""
+        self.paused = False
+        logger.info("تم استئناف جميع عمليات النشر")
+
+    def get_running_ads(self):
+        """الحصول على قائمة الإعلانات قيد التشغيل"""
+        return list(self.running_tasks.keys())
+```
+
+3.4 services/join_service.py
+
+```python
+# -*- coding: utf-8 -*-
+import logging
+import asyncio
+from telethon import TelegramClient
+from telethon.errors import FloodWaitError, InviteHashExpiredError, UserAlreadyParticipantError
+from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
+from telethon.tl.types import ChatInviteAlready
+import re
+
+logger = logging.getLogger(__name__)
+
+class JoinService:
+    def __init__(self, db, api_id, api_hash):
+        self.db = db
+        self.api_id = api_id
+        self.api_hash = api_hash
+        self.join_tasks = {}
+
+    def extract_invite_hash(self, invite_link):
+        """استخراج الهاش من رابط الدعوة"""
+        patterns = [
+            r't\.me/joinchat/([a-zA-Z0-9_-]+)',
+            r't\.me/([a-zA-Z0-9_-]{22})',
+            r'joinchat/([a-zA-Z0-9_-]+)'
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, invite_link)
+            if match:
+                return match.group(1)
+        return None
+
+    async def join_group(self, number_id, invite_link):
+        """انضمام رقم إلى مجموعة عبر رابط دعوة"""
+        number = self.db.get_number(number_id)
+        if not number:
+            return False, "الرقم غير موجود"
+
+        client = TelegramClient('temp_join', self.api_id, self.api_hash)
+        try:
+            client.session.load(number['session_string'])
+            await client.connect()
+
+            invite_hash = self.extract_invite_hash(invite_link)
+            if not invite_hash:
+                return False, "رابط دعوة غير صالح"
+
+            # التحقق من صلاحية الرابط
+            try:
+                invites = await client(CheckChatInviteRequest(invite_hash))
+                if isinstance(invites, ChatInviteAlready):
+                    # المستخدم موجود بالفعل
+                    return False, "أنت عضو بالفعل في هذه المجموعة"
+                # محاولة الانضمام
+                updates = await client(ImportChatInviteRequest(invite_hash))
+                chat = updates.chats[0]
+                return True, f"تم الانضمام إلى {chat.title}"
+            except UserAlreadyParticipantError:
+                return False, "أنت عضو بالفعل"
+            except InviteHashExpiredError:
+                return False, "رابط الدعوة منتهي الصلاحية"
+            except FloodWaitError as e:
+                return False, f"الرجاء الانتظار {e.seconds} ثانية"
+            except Exception as e:
+                logger.error(f"خطأ في الانضمام: {e}")
+                return False, str(e)
+        finally:
+            await client.disconnect()
+
+    async def smart_join(self, user_id, numbers, invite_link, num_joins=1):
+        """انضمام ذكي بعدة أرقام"""
+        joined_count = 0
+        results = []
+        for i in range(min(num_joins, len(numbers))):
+            number = numbers[i]
+            success, msg = await self.join_group(number['id'], invite_link)
+            results.append((number['phone'], success, msg))
+            if success:
+                joined_count += 1
+            await asyncio.sleep(random.randint(5, 15))  # تأخير بين العمليات
+        return joined_count, results
+
+    async def start_auto_join(self, user_id, numbers, invite_link, target_count):
+        """بدء انضمام تلقائي مستمر"""
+        task_key = f"{user_id}_{invite_link}"
+        if task_key in self.join_tasks:
+            return False, "يوجد بالفعل عملية انضمام نشطة لهذا الرابط"
+
+        async def join_loop():
+            joined_so_far = 0
+            while joined_so_far < target_count:
+                available_numbers = [n for n in numbers if n['status'] == 'active']
+                if not available_numbers:
+                    break
+                number = random.choice(available_numbers)
+                success, msg = await self.join_group(number['id'], invite_link)
+                if success:
+                    joined_so_far += 1
+                    logger.info(f"تم الانضمام بواسطة {number['phone']} - {joined_so_far}/{target_count}")
+                await asyncio.sleep(random.randint(30, 90))  # تأخير عشوائي
+            # إزالة المهمة عند الانتهاء
+            del self.join_tasks[task_key]
+
+        task = asyncio.create_task(join_loop())
+        self.join_tasks[task_key] = task
+        return True, "بدأت عملية الانضمام التلقائي"
+
+    def stop_auto_join(self, user_id, invite_link):
+        """إيقاف الانضمام التلقائي"""
+        task_key = f"{user_id}_{invite_link}"
+        if task_key in self.join_tasks:
+            self.join_tasks[task_key].cancel()
+            del self.join_tasks[task_key]
+            return True
+        return False
+```
+
+3.5 services/fetch_service.py
+
+```python
+# -*- coding: utf-8 -*-
+import logging
+import re
+import asyncio
+from telethon import TelegramClient, events
+from telethon.tl.types import Message
+
+logger = logging.getLogger(__name__)
+
+class FetchService:
+    def __init__(self, db, api_id, api_hash):
+        self.db = db
+        self.api_id = api_id
+        self.api_hash = api_hash
+        self.fetching_tasks = {}
+        self.link_patterns = {
+            'telegram': r'(https?://)?(t\.me/|telegram\.me/)[a-zA-Z0-9_/+-]+',
+            'whatsapp': r'(https?://)?(wa\.me/|chat\.whatsapp\.com/)[a-zA-Z0-9_/+-]+'
+        }
+
+    async def fetch_from_group(self, user_id, session_string, group_id):
+        """جلب الروابط من مجموعة محددة"""
+        client = TelegramClient('temp_fetch', self.api_id, self.api_hash)
+        try:
+            client.session.load(session_string)
+            await client.connect()
+
+            entity = await client.get_entity(int(group_id))
+            messages = await client.get_messages(entity, limit=50)
+            fetched = 0
+            for msg in messages:
+                if msg.text:
+                    links = self.extract_links(msg.text)
+                    for link, link_type in links:
+                        self.db.add_fetched_link(user_id, group_id, link, link_type)
+                        fetched += 1
+            return True, f"تم جلب {fetched} رابط"
+        except Exception as e:
+            logger.error(f"خطأ في الجلب: {e}")
+            return False, str(e)
+        finally:
+            await client.disconnect()
+
+    def extract_links(self, text):
+        """استخراج جميع الروابط من النص"""
+        links = []
+        for link_type, pattern in self.link_patterns.items():
+            matches = re.findall(pattern, text)
+            for match in matches:
+                full_link = match[0] + match[1] if isinstance(match, tuple) else match
+                links.append((full_link, link_type))
+        return links
+
+    async def start_auto_fetch(self, user_id, session_string, source_groups):
+        """بدء جلب تلقائي مستمر من مجموعات المصدر"""
+        task_key = f"fetch_{user_id}"
+        if task_key in self.fetching_tasks:
+            return False, "الجلب التلقائي مفعل بالفعل"
+
+        async def fetch_loop():
+            client = TelegramClient('auto_fetch', self.api_id, self.api_hash)
+            try:
+                client.session.load(session_string)
+                await client.connect()
+
+                @client.on(events.NewMessage(chats=source_groups))
+                async def handler(event):
+                    if event.message.text:
+                        links = self.extract_links(event.message.text)
+                        for link, link_type in links:
+                            self.db.add_fetched_link(user_id, event.chat_id, link, link_type)
+                            logger.info(f"تم جلب رابط جديد: {link}")
+
+                await client.run_until_disconnected()
+            except Exception as e:
+                logger.error(f"خطأ في الجلب التلقائي: {e}")
+            finally:
+                await client.disconnect()
+                if task_key in self.fetching_tasks:
+                    del self.fetching_tasks[task_key]
+
+        task = asyncio.create_task(fetch_loop())
+        self.fetching_tasks[task_key] = task
+        return True, "بدأ الجلب التلقائي"
+
+    def stop_auto_fetch(self, user_id):
+        """إيقاف الجلب التلقائي"""
+        task_key = f"fetch_{user_id}"
+        if task_key in self.fetching_tasks:
+            self.fetching_tasks[task_key].cancel()
+            del self.fetching_tasks[task_key]
+            return True
+        return False
+```
+
+3.6 services/proxy_manager.py
+
+```python
+# -*- coding: utf-8 -*-
+import logging
+import random
+import socks
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+class ProxyManager:
+    def __init__(self, db):
+        self.db = db
+
+    def get_proxy_dict(self, proxy):
+        """تحويل سجل البروكسي إلى قاموس بتنسيق telethon"""
+        if not proxy:
+            return None
+        if proxy['proxy_type'] == 'socks5':
+            return {
+                'proxy_type': socks.SOCKS5,
+                'addr': proxy['proxy_address'],
+                'port': proxy['proxy_port'],
+                'username': proxy['proxy_username'],
+                'password': proxy['proxy_password']
+            }
+        # يمكن إضافة أنواع أخرى لاحقاً
+        return None
+
+    def get_random_proxy(self):
+        """اختيار بروكسي عشوائي من قاعدة البيانات"""
+        proxies = self.db.get_proxies(active_only=True)
+        if proxies:
+            proxy = random.choice(proxies)
+            self.db.increment_proxy_usage(proxy['id'])
+            return self.get_proxy_dict(proxy)
+        return None
+
+    def add_proxy_from_string(self, proxy_string):
+        """إضافة بروكسي من نص بالصيغة: socks5://user:pass@host:port أو host:port"""
+        try:
+            # صيغة بسيطة: host:port
+            if '://' not in proxy_string and '@' not in proxy_string:
+                parts = proxy_string.split(':')
+                if len(parts) == 2:
+                    host, port = parts
+                    return self.db.add_proxy('socks5', host, int(port))
+            # صيغة متقدمة (يمكن تطويرها لاحقاً)
+            return False
+        except Exception as e:
+            logger.error(f"خطأ في إضافة بروكسي: {e}")
+            return False
+
+    def check_proxy_health(self, proxy_dict):
+        """فحص صحة البروكسي (يمكن تنفيذه لاحقاً)"""
+        # سيتم تنفيذه لاحقاً باستخدام requests أو telethon
+        pass
+```
+
+---
+
+4. مجلد handlers
+
+4.1 handlers/__init__.py
+
+```python
+# هذا الملف يجعل المجلد حزمة بايثون
+```
+
+4.2 handlers/user_handlers.py
+
+```python
+# -*- coding: utf-8 -*-
+import logging
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+class UserHandlers:
+    def __init__(self, db, auth_service, publish_service, join_service, fetch_service, admin_ids):
+        self.db = db
+        self.auth_service = auth_service
+        self.publish_service = publish_service
+        self.join_service = join_service
+        self.fetch_service = fetch_service
+        self.admin_ids = admin_ids
+        self.user_states = {}  # تخزين حالة المستخدم مؤقتاً
+
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """معالج أمر /start"""
+        user = update.effective_user
+        # إضافة المستخدم إذا لم يكن موجوداً
+        referred_by = None
+        if context.args and context.args[0].startswith('ref_'):
+            try:
+                referred_by = int(context.args[0].split('_')[1])
+            except:
+                pass
+        self.db.add_user(user.id, user.username, user.first_name, referred_by)
+
+        # قائمة الأزرار الرئيسية
+        keyboard = [
+            [InlineKeyboardButton("📱 إدارة الأرقام", callback_data="manage_numbers")],
+            [InlineKeyboardButton("📢 إدارة الإعلانات", callback_data="manage_ads")],
+            [InlineKeyboardButton("👥 إدارة المجموعات", callback_data="manage_groups")],
+            [InlineKeyboardButton("🔗 جلب الروابط", callback_data="fetch_links")],
+            [InlineKeyboardButton("👤 حسابي", callback_data="my_profile")]
+        ]
+        # إضافة زر الأدمن إذا كان المستخدم أدمن
+        if user.id in self.admin_ids:
+            keyboard.append([InlineKeyboardButton("⚙️ لوحة الأدمن", callback_data="admin_panel")])
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            f"مرحباً {user.first_name}!\n"
+            "أهلاً بك في بوت محرم المتكامل.\n"
+            "اختر من القائمة أدناه:",
+            reply_markup=reply_markup
+        )
+
+    async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """معالج الرسائل النصية"""
+        user_id = update.effective_user.id
+        text = update.message.text
+
+        # التحقق من حالة المستخدم
+        if user_id in self.user_states:
+            state = self.user_states[user_id]
+            await self.handle_state(update, context, state)
+            return
+
+        # رد افتراضي
+        await update.message.reply_text("أرجو استخدام الأزرار للتنقل.")
+
+    async def handle_state(self, update, context, state):
+        """معالج الحالات المختلفة (إضافة رقم، إعلان، الخ)"""
+        user_id = update.effective_user.id
+        text = update.message.text
+
+        if state == 'waiting_phone':
+            # تخزين الرقم مؤقتاً وطلب كود
+            context.user_data['phone'] = text
+            success, msg = await self.auth_service.send_code(text)
+            if success:
+                self.user_states[user_id] = 'waiting_code'
+                await update.message.reply_text("تم إرسال الكود. الرجاء إدخاله:")
+            else:
+                await update.message.reply_text(f"خطأ: {msg}")
+                del self.user_states[user_id]
+
+        elif state == 'waiting_code':
+            phone = context.user_data.get('phone')
+            code = text
+            success, result = await self.auth_service.verify_code(phone, code)
+            if success:
+                # حفظ الرقم في قاعدة البيانات
+                self.db.add_number(user_id, phone, result)
+                await update.message.reply_text("✅ تم تسجيل الرقم بنجاح!")
+                del self.user_states[user_id]
+                del context.user_data['phone']
+            elif result == "twofa_needed":
+                self.user_states[user_id] = 'waiting_2fa'
+                await update.message.reply_text("الرقم مفعل بخطوتين. الرجاء إدخال كلمة المرور:")
+            else:
+                await update.message.reply_text(f"خطأ: {result}")
+
+        elif state == 'waiting_2fa':
+            phone = context.user_data.get('phone')
+            twofa = text
+            success, result = await self.auth_service.verify_twofa(phone, twofa)
+            if success:
+                self.db.add_number(user_id, phone, result, twofa=twofa)
+                await update.message.reply_text("✅ تم تسجيل الرقم بنجاح!")
+                del self.user_states[user_id]
+                del context.user_data['phone']
+            else:
+                await update.message.reply_text(f"خطأ: {result}")
+
+        elif state == 'waiting_ad_text':
+            # حفظ نص الإعلان
+            context.user_data['ad_text'] = text
+            keyboard = [
+                [InlineKeyboardButton("عام", callback_data="ad_type_public")],
+                [InlineKeyboardButton("خاص", callback_data="ad_type_special")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text("اختر نوع الإعلان:", reply_markup=reply_markup)
+            # لا نحذف الحالة، سنتعامل
