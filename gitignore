@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.db-journal
+venv/
+env/
+.env
+
+# Logs
+logs/*.log
+*.log
+
+# Temp
+temp/*
+
+# Backups
+backups/*
+
+# IDE
+.vscode/
+.idea/
+
+# System
+.DS_Store
+*.swp
+*.swo
+*~
